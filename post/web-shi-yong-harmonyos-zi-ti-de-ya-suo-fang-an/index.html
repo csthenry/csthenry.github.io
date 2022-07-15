@@ -1,0 +1,252 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Web 使用 HarmonyOS 字体的压缩方案 | Henry</title>
+<link rel="shortcut icon" href="https://csthenry.github.io/favicon.ico?v=1657890064100">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://csthenry.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Web 使用 HarmonyOS 字体的压缩方案 | Henry - Atom Feed" href="https://csthenry.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="HarmonyOS 字体
+
+https://developer.harmonyos.com/cn/docs/design/font-0000001157868583
+
+通过研究用户在不同场景下对多终端设备的阅读反馈，综合考量不同设备的尺寸、..." />
+    <meta name="keywords" content="tech" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://csthenry.github.io">
+  <img class="avatar" src="https://csthenry.github.io/images/avatar.png?v=1657890064100" alt="">
+  </a>
+  <h1 class="site-title">
+    Henry
+  </h1>
+  <p class="site-description">
+    Do great things with extraordinary people.
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Web 使用 HarmonyOS 字体的压缩方案
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-07-15
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+                <a href="https://csthenry.github.io/tag/tech/" class="post-tag">
+                  # tech
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h3 id="harmonyos-字体">HarmonyOS 字体</h3>
+<blockquote>
+<p>https://developer.harmonyos.com/cn/docs/design/font-0000001157868583</p>
+</blockquote>
+<p>通过研究用户在不同场景下对多终端设备的阅读反馈，综合考量不同设备的尺寸、使用场景等因素，同时也考虑用户使用设备时因视距、视角的差异带来的字体大小和字重的不同诉求，我们为 HarmonyOS 设计了全新系统默认的字体——HarmonyOS Sans（即鸿蒙字体）。</p>
+<p>通过 BILIBILI（哔哩哔哩）主站的使用效果来看，能明显发现 HarmonyOS 字体在 Windows 低分辨率<code>pixel-ratio &lt; 1.5</code>屏幕上显示更加细腻。</p>
+<h3 id="网页加载速度的影响">网页加载速度的影响</h3>
+<p>如果需要全站使用同一种字体，那么我们或许需要同时加载 Regular、Medium、Bold 等不同字重的字体文件，这里给一个参考：<br>
+HarmonyOS_Sans_SC_Regular.ttf 文件大小高达 8068KB，注意，这仅仅是 Regular。<br>
+所以，如果不对字体文件进行压缩，将其作为 Web 字体是不合理的，这将极大拉缓网页加载速度，严重影响用户体验。</p>
+<h3 id="字体压缩">字体压缩</h3>
+<h4 id="fonttools">FontTools</h4>
+<blockquote>
+<p>What is this?</p>
+</blockquote>
+<p>fontTools is a library for manipulating fonts, written in Python. The project includes the TTX tool, that can convert TrueType and OpenType fonts to and from an XML text format, which is also called TTX. It supports TrueType, OpenType, AFM and to an extent Type 1 and some Mac-specific formats. The project has an <a href="https://github.com/fonttools/fonttools/blob/main/LICENSE">MIT open-source licence</a>.</p>
+<p>Among other things this means you can use it free of charge.</p>
+<p><a href="https://fonttools.readthedocs.io/en/latest/">User documentation</a> and <a href="https://fonttools.readthedocs.io/en/latest/developer.html">developer documentation</a> are available at <a href="https://fonttools.readthedocs.io/">Read the Docs</a>.</p>
+<h4 id="如何压缩">如何压缩</h4>
+<p>借助以上工具，我们可以将 unicode 分为多个片段来对字体文件进行压缩：</p>
+<table>
+<thead>
+<tr>
+<th><strong>字符集</strong></th>
+<th><strong>字数</strong></th>
+<th><strong>Unicode 编码</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>拉丁字母</td>
+<td>--</td>
+<td>0000-007F,0080-00FF等</td>
+</tr>
+<tr>
+<td>基本汉字</td>
+<td>20902 字</td>
+<td>4E00-9FA5</td>
+</tr>
+<tr>
+<td>中文字符</td>
+<td>--</td>
+<td>3002,FF1F等</td>
+</tr>
+</tbody>
+</table>
+<p>我们只需要对这两万多个基本汉字进行分段即可，至于数字、拉丁字母等，其实并不会过多影响字体文件大小。</p>
+<p>将 unicode 合理分段后，使用 fonttools subset 对字体进行压缩，命令如下：</p>
+<pre><code class="language-shell">pyftsubset ./HarmonyOS_Sans_SC_Bold.ttf --unicodes-file=./unicodes_10.txt --with-zopfli --flavor=woff2
+
+# 参数
+# pyftsubset &lt;PATH&gt;        # 待压缩字体文件路径
+# --unicodes-file=&lt;PATH&gt;   # unicode.txt 文件路径
+# --with-zopfli            # 使用 Google 压缩算法
+# --flavor=&lt;TYPE&gt;          # 输出字体格式
+</code></pre>
+<p>我们将 unicode 写入 unicode.txt 文件中，使用 <code>--unicodes-file=&lt;PATH&gt;</code>即可使用。<br>
+待所有字体压缩完成后，我们在 CSS 中使用 <code>unicode-range</code>属性来调用对应 unicode 区域的字体文件。</p>
+<p>具体效果可参考本站 （Windows 且<code>pixel-ratio &lt; 1.5</code>环境下）的字体显示情况。</p>
+<hr>
+<p>字节星球 Henry 2022-07-11 <strong>未经许可 严禁转载！</strong><br>
+https://www.bytecho.net/archives/2042.html</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#harmonyos-%E5%AD%97%E4%BD%93">HarmonyOS 字体</a></li>
+<li><a href="#%E7%BD%91%E9%A1%B5%E5%8A%A0%E8%BD%BD%E9%80%9F%E5%BA%A6%E7%9A%84%E5%BD%B1%E5%93%8D">网页加载速度的影响</a></li>
+<li><a href="#%E5%AD%97%E4%BD%93%E5%8E%8B%E7%BC%A9">字体压缩</a>
+<ul>
+<li><a href="#fonttools">FontTools</a></li>
+<li><a href="#%E5%A6%82%E4%BD%95%E5%8E%8B%E7%BC%A9">如何压缩</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://csthenry.github.io/post/hello-gridea/">
+              <h3 class="post-title">
+                Hello Gridea
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered-by-<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://csthenry.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
